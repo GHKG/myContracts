@@ -238,8 +238,6 @@ contract GreenBTC is ERC721{
 
     function meta1(
         uint256 tokenId,
-        // uint256 count,
-        // uint256 eaa,
         string memory series,
         uint256 xenBurned,
         uint256 height,
