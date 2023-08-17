@@ -26,12 +26,42 @@ contract GreenBTC is ERC721{
         uint256 blockTime;
     }
 
-    uint256 public _totalCount;
+    struct Green_BTC{
+        uint256 height;
+        uint256 energy;
+        address beneficiary;
+        string  blockTime;
+    }
 
-    mapping (uint256 => SVG_PARAM) public _data;
+    struct Sig {
+        uint8       v;
+        bytes32     r;
+        bytes32     s;              
+    }
+
+    bytes32 public immutable _DOMAIN_SEPARATOR;
+    bytes32 public immutable _GREEN_BTC_TYPEHASH;
+    // mapping (uint256 => SVG_PARAM)  public _data;
+    mapping (uint256 => Green_BTC)  public _data;
+    uint256 public _totalCount;
+    address public _authorizer;
+
+    event GreenBitCoin(uint256 height,uint256 energy,string blockTime,address beneficiary);
 
     constructor(string memory name_, string memory symbol_)ERC721(name_, symbol_){
         _totalCount = 0;
+
+        _DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256(bytes(name_)),
+                keccak256(bytes("1")),
+                block.chainid,
+                address(this)
+            )
+        );  
+
+        _GREEN_BTC_TYPEHASH = keccak256("GreenBitCoin(uint256 height,uint256 energy,string blockTime,address beneficiary)");
     }
 
     string private constant _STYLE =
@@ -83,24 +113,24 @@ contract GreenBTC is ERC721{
         '</linearGradient>';
 
 
-    function mintNFT(string memory series_, uint256 gbtcBurned_, uint256 height_, uint256 energy_,uint256 blockTime_) public {
+    // function mintNFT(string memory series_, uint256 gbtcBurned_, uint256 height_, uint256 energy_,uint256 blockTime_) public {
 
-        uint256 tokenId = ++_totalCount ;
+    //     uint256 tokenId = ++_totalCount ;
 
-        SVG_PARAM memory svg_param = SVG_PARAM({
-            symbol : symbol(),
-            gbtcAddress: msg.sender,
-            tokenId: tokenId,
-            series: series_,
-            gbtcBurned:gbtcBurned_,
-            height:height_,
-            energy:energy_,
-            blockTime:blockTime_
-        });
+    //     SVG_PARAM memory svg_param = SVG_PARAM({
+    //         symbol : symbol(),
+    //         gbtcAddress: msg.sender,
+    //         tokenId: tokenId,
+    //         series: series_,
+    //         gbtcBurned:gbtcBurned_,
+    //         height:height_,
+    //         energy:energy_,
+    //         blockTime:blockTime_
+    //     });
 
-        _mint(msg.sender, tokenId);
-        _data[tokenId] = svg_param;
-    }
+    //     _mint(msg.sender, tokenId);
+    //     _data[tokenId] = svg_param;
+    // }
 
     function svgData(SVG_PARAM memory param) internal   pure returns(string memory){
 
@@ -151,26 +181,26 @@ contract GreenBTC is ERC721{
             );
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory){
+    // function tokenURI(uint256 tokenId) public view override returns (string memory){
 
-        require(tokenId <= _totalCount && tokenId != 0, "invalid token id");
+    //     require(tokenId <= _totalCount && tokenId != 0, "invalid token id");
 
-        bytes memory dataURI = abi.encodePacked(
-            "{",
-            '"name": "Green BTC #',
-            tokenId.toString(),
-            '",',
-            '"description": "GreenBTC: Green Bit Coin",',
-            '"image": "',
-            "data:image/svg+xml;base64,",
-            svgData(_data[tokenId]),
-            '",',
-            '"attributes": ',
-            _attributes(_data[tokenId]),
-            "}"
-        );
-        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(dataURI)));
-    }
+    //     bytes memory dataURI = abi.encodePacked(
+    //         "{",
+    //         '"name": "Green BTC #',
+    //         tokenId.toString(),
+    //         '",',
+    //         '"description": "GreenBTC: Green Bit Coin",',
+    //         '"image": "',
+    //         "data:image/svg+xml;base64,",
+    //         svgData(_data[tokenId]),
+    //         '",',
+    //         '"attributes": ',
+    //         _attributes(_data[tokenId]),
+    //         "}"
+    //     );
+    //     return string(abi.encodePacked("data:application/json;base64,", Base64.encode(dataURI)));
+    // }
 
 
     function defs() internal pure returns (bytes memory) {
@@ -347,6 +377,34 @@ contract GreenBTC is ERC721{
         return abi.encodePacked(part3);
     }
 
+    function _mintNFT(uint256 height, uint256 energy, string calldata blockTime, address beneficiary) internal {
+        Green_BTC memory green_btc = Green_BTC({
+            height:height,
+            energy:energy,
+            blockTime:blockTime,
+            beneficiary:beneficiary
+        });
+
+        _mint(msg.sender, height);
+        _data[height] = green_btc;
+    }
+
+    function authMintGreenBTC(uint256 height, uint256 energy, string calldata blockTime, address beneficiary, Sig calldata sig) public {
+
+        require(beneficiary == msg.sender, "only beneficiary can mint NFT");
+        require(_data[height].height != 0, "only grey block can be mint");
+
+
+        bytes32 greenBTCHash = keccak256(abi.encode(_GREEN_BTC_TYPEHASH, height, energy, blockTime, beneficiary));
+        bytes32 digest = keccak256(abi.encodePacked('\x19\x01', _DOMAIN_SEPARATOR, greenBTCHash));
+        address recoveredAddress = ecrecover(digest, sig.v, sig.r, sig.s);
+
+        require(recoveredAddress == _authorizer, "invalid singature");
+
+        _mintNFT(height, energy, blockTime,  beneficiary);
+
+        emit GreenBitCoin(height,energy,blockTime,beneficiary);
+    }
 
  
 }
