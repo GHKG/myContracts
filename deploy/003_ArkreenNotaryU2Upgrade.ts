@@ -11,9 +11,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     // console.log("Deploying Updated ArkreenRetirement: ", CONTRACTS.RECRetire, deployerAddress);  
      
-    if(hre.network.name === 'matic_test') {
-        const PROXY_ADDRESS       = "0xff7330D8EfEF19aa2214eFbbc7b26ef4Def3a3b6"       // Need to check
-        const NEW_IMPLEMENTATION  = "0x03C10DAf2d1657842b4AD86aDCf9AcBA4Dc9E949"       // Need to check
+    // if(hre.network.name === 'matic_test') {
+    if(hre.network.name === 'matic') {
+
+        const PROXY_ADDRESS       = "0xb006A62f7e0f3715126AA76A968Ac709d0Fc0341"       // Need to check
+        const NEW_IMPLEMENTATION  = "0x4A97b5139c3b1Aa3C29e9bbA381d87077FcB2c20"       // Need to check
         //const FOUNDATION_ADDRESS  = "0x1C9055Db231CD96447c61D07B3cEA77592154C3d"  //from Gery        
 
         const [deployer] = await ethers.getSigners();
