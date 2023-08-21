@@ -116,7 +116,7 @@ contract GreenBTC is Ownable,ERC721{
                 address(this)
             )
         );  
-
+                                       //GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType)
         _GREEN_BTC_TYPEHASH = keccak256("GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType)");
         _authorizer = authorizer_;
     }
@@ -144,17 +144,23 @@ contract GreenBTC is Ownable,ERC721{
     //     _data[tokenId] = svg_param;
     // }
 
-    function svgData(SVG_PARAM memory param) internal   pure returns(string memory){
+    function svgData(Green_BTC memory param) internal  pure  returns(string memory){
 
         bytes memory graphics = abi.encodePacked(_defs(), _STYLE, _g(1), _LOGO, _APEX);
         bytes memory metadata = abi.encodePacked(
-            _contractData(param.symbol, param.gbtcAddress),
-            _meta1(param.tokenId, param.series, param.gbtcBurned,param.height,param.energy),
+            _contractData(_symbol, param.beneficiary),
+            _meta1(param.height, param.blockTime, param.cellCount ,param.energyStr),
             _meta2(param.blockTime)
             // quote(idx),
             // stamp(params.redeemed)
         );
         
+
+        //         uint256 tokenId,//height
+        // string memory blockTime,
+        // uint256 ARTBurned,
+        // // uint256 height,
+        // string memory energy
         
         bytes memory imgBytes = abi.encodePacked(
                 "<svg "
@@ -170,49 +176,50 @@ contract GreenBTC is Ownable,ERC721{
 
     }
 
-    function _attributes( SVG_PARAM memory param) internal pure returns (bytes memory) {
+    function _attributes( Green_BTC memory param) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
                 "[",
-                '{"trait_type":"Series","value":"',
-                param.series,
-                '"},',
+                // '{"trait_type":"Series","value":"',
+                // param.series,
+                // '"},',
                 '{"trait_type":"Burned","value":"',
-                param.gbtcBurned.toString(),
+                param.cellCount.toString(),
                 '"},',
                 '{"trait_type":"height","value":"',
                 param.height.toString(),
                 '"},',
                 '{"trait_type":"energy","value":"',
-                param.energy.toString(),
+                param.energyStr,
                 '"},',
                 '{"trait_type":"blockTime","value":"',
-                param.blockTime.toString(),
+                param.blockTime,
                 '"}',
                 "]"
             );
     }
 
-    // function tokenURI(uint256 tokenId) public view override returns (string memory){
+    function tokenURI(uint256 tokenId) public view override returns (string memory){
 
-    //     require(tokenId <= _totalCount && tokenId != 0, "invalid token id");
+        // require(tokenId <= _totalCount && tokenId != 0, "invalid token id");
+        require(_data[tokenId].height != 0, "no such token minted");
 
-    //     bytes memory dataURI = abi.encodePacked(
-    //         "{",
-    //         '"name": "Green BTC #',
-    //         tokenId.toString(),
-    //         '",',
-    //         '"description": "GreenBTC: Green Bit Coin",',
-    //         '"image": "',
-    //         "data:image/svg+xml;base64,",
-    //         svgData(_data[tokenId]),
-    //         '",',
-    //         '"attributes": ',
-    //         _attributes(_data[tokenId]),
-    //         "}"
-    //     );
-    //     return string(abi.encodePacked("data:application/json;base64,", Base64.encode(dataURI)));
-    // }
+        bytes memory dataURI = abi.encodePacked(
+            "{",
+            '"name": "Green BTC #',
+            tokenId.toString(),
+            '",',
+            '"description": "GreenBTC: Green Bit Coin",',
+            '"image": "',
+            "data:image/svg+xml;base64,",
+            svgData(_data[tokenId]),
+            '",',
+            '"attributes": ',
+            _attributes(_data[tokenId]),
+            "}"
+        );
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(dataURI)));
+    }
 
 
     function _defs() internal pure returns (bytes memory) {
@@ -261,7 +268,7 @@ contract GreenBTC is Ownable,ERC721{
     }
 
 
-    function _contractData(string memory symbol, address xenAddress) internal pure returns (bytes memory) {
+    function _contractData(string memory symbol, address minterAddress) internal pure returns (bytes memory) {
         return
             abi.encodePacked(
                 "<text "
@@ -272,18 +279,18 @@ contract GreenBTC is Ownable,ERC721{
                 'text-anchor="middle">',
                 symbol,
                 unicode"・",
-                xenAddress.toHexString(),
+                minterAddress.toHexString(),
                 "</text>"
             );
     }
 
 
     function _meta1(
-        uint256 tokenId,
-        string memory series,
-        uint256 xenBurned,
-        uint256 height,
-        uint256 energy
+        uint256 tokenId,//height
+        string memory blockTime,
+        uint256 ARTBurned,
+        // uint256 height,
+        string memory energy
     ) internal pure returns (bytes memory) {
         bytes memory part1 = abi.encodePacked(
             "<text "
@@ -301,7 +308,7 @@ contract GreenBTC is Ownable,ERC721{
             'text-anchor="middle" '
             'dominant-baseline="middle"> ',
             // xenBurned > 0 ? string.concat((xenBurned / 10**18).toFormattedString(), " X") : "",
-            string.concat("height : ", height.toString()),//////
+            string.concat("height : ", tokenId.toString()),//////
             "</text>"
             "<text "
             'x="18%" '
@@ -311,14 +318,14 @@ contract GreenBTC is Ownable,ERC721{
             "#",
             tokenId.toString(),//////
             "</text>"
-            "<text "
-            'x="82%" '
-            'y="62%" '
-            'class="base meta series" '
-            'dominant-baseline="middle" '
-            'text-anchor="end" >',
-            series,//////
-            "</text>"
+            // "<text "
+            // 'x="82%" '
+            // 'y="62%" '
+            // 'class="base meta series" '
+            // 'dominant-baseline="middle" '
+            // 'text-anchor="end" >',
+            // blockTime,//////
+            // "</text>"
         );
         bytes memory part2 = abi.encodePacked(
             "<text "
@@ -327,7 +334,7 @@ contract GreenBTC is Ownable,ERC721{
             'class="base meta" '
             'dominant-baseline="middle" >'
             "Energy: ",
-            energy.toString(),/////
+            energy,/////
             "</text>"
             "<text "
             'x="18%" '
@@ -335,7 +342,7 @@ contract GreenBTC is Ownable,ERC721{
             'class="base meta" '
             'dominant-baseline="middle" >'
             "ART Burned: ",
-            xenBurned.toString(),
+            ARTBurned.toString(),
             "</text>"
         );
         return abi.encodePacked(part1, part2);
@@ -347,7 +354,7 @@ contract GreenBTC is Ownable,ERC721{
         // uint256 term,
         // uint256 rank,
         // uint256 count
-        uint256 blockTime
+        string memory blockTime
     ) internal pure returns (bytes memory) {
         bytes memory part3 = abi.encodePacked(
             "<text "
@@ -356,7 +363,7 @@ contract GreenBTC is Ownable,ERC721{
             'class="base meta" '
             'dominant-baseline="middle" >'
             "BlockTime: ",
-            blockTime.toString(),
+            blockTime,
             "</text>"
             // "<text "
             // 'x="18%" '
@@ -405,7 +412,7 @@ contract GreenBTC is Ownable,ERC721{
 
     //// "GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType)";
 
-function authMintGreenBTC(uint256 height, string calldata energyStr, uint256 cellCount, string calldata blockTime, address beneficiary, uint8 greenType, Sig calldata sig) public {
+    function authMintGreenBTC(uint256 height, string calldata energyStr, uint256 cellCount, string calldata blockTime, address beneficiary, uint8 greenType, Sig calldata sig) public {
 
         require(beneficiary == msg.sender, "only beneficiary can mint NFT");
         require(_data[height].height == 0, "only grey block can be mint");
@@ -422,7 +429,17 @@ function authMintGreenBTC(uint256 height, string calldata energyStr, uint256 cel
         emit GreenBitCoin(height, energyStr, cellCount, blockTime,  beneficiary, greenType);
     }
 
+    function _getDigest(uint256 height, string calldata energyStr, uint256 cellCount, string calldata blockTime, address beneficiary, uint8 greenType) public view returns(bytes32) {
 
+        // require(beneficiary == msg.sender, "only beneficiary can mint NFT");
+        require(_data[height].height == 0, "only grey block can be mint");
+
+                                                  //GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType)
+        bytes32 greenBTCHash = keccak256(abi.encode(_GREEN_BTC_TYPEHASH, height, energyStr, cellCount, blockTime, beneficiary, greenType));
+        bytes32 digest = keccak256(abi.encodePacked('\x19\x01', _DOMAIN_SEPARATOR, greenBTCHash));
+
+        return digest;
+    }
 
     function setAuthorizer(address authAddress) public onlyOwner {
         require(authAddress != address(0), "address 0 is not allowed"); 

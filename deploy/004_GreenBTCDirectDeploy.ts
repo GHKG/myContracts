@@ -6,6 +6,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const greenBTC = "GreenBTC"
 
+    const authorizer = "0x2df522C2bF3E570caA22FBBd06d1A120B4Dc29a8";
+
     const { deployments, getNamedAccounts } = hre;
     const { deploy } = deployments;
     const { deployer } = await getNamedAccounts();
@@ -13,7 +15,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     console.log(`Driect Deploying: ${greenBTC} from ${deployer}`); 
     const GreenBTC = await deploy(greenBTC, {
         from: deployer,
-        args: ["green btc", "GBTC"],
+        args: [authorizer],
         log: true,
         skipIfAlreadyDeployed: false,
     });
