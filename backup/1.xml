@@ -15,6 +15,16 @@
         <rect width="94%" height="96%" fill="transparent" rx="10px" ry="10px"
             stroke-linejoin="round" x="3%" y="2%" stroke-dasharray="1,6" stroke="white" />
     </g>
+    <g>
+        <rect width="245" height="245" fill="url(#pattern0)" />
+        <defs>
+            <pattern id="pattern0" patternContentUnits="objectBoundingBox" width="1" height="1">
+                <use xlinkHref="#qrcode" transform="scale(0.004081632653061224)" />
+            </pattern>
+            <image id="qrcode"
+                xlinkHref="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPUAAAD1CAAAAACt2uy5AAADIElEQVR42u3cUU7EMAwFwL3/peECNLznAmLr6RcCNs0UyXFil9fHxutFTU1NTU1NTU1NTU1NTU1NTU3dq1/fX5cfuxzq8ve+GvnyE+fPxjOlpqZepL4OgEfDeYDzLweP485MqampF6vP8fUcModT/Sr0B/cIVgJqamrqVp2C0zw0iNLU1NTUvxXDgz13taGu5kJNTU1d7FrPMTzYS59jfTrKH58qUFNTv5k6qCj8k6/+uOJDTU39Pur0Su8UbLeDRSDQxBOnpqbeoQ5iZLAVTlPQqk3lXBRJnwk1NfUSdVW1SNVptaRypeeG1NTUO9VVME67eM+dJ91hXyOkpqamLoRB9A325kF1ow/91NTU29Xp+MMUNICki0q1MFBTU29S9/vrtEn4PMFzvO6rL799qkBNTf3e6mEumVov/VVa+s3DoqamXqSuJph2D/cxt38DYrq/pqamfp56uJcePokgBU1jeJzIUlNT71D3Y6VFkaA80p9Snn9ATU29WB2MNeytS79Xnf0FT4eamnqnOj156wPq8CkGBZX0OICamnqn+ryrHmaL1T0CwzmaU1NTU9fvFTSVkWFjy7C3mJqaeqe6zyrvHOela0L6KJO/DzU19Q51nwpWnSdBnWOYbsZHi9TU1DvU0zwvbGfpI3K13U7SXGpq6h3qPtMcniCmzb9pueWHOqWpqakfpQ4yyCAj7RPK9ASxSmSpqampi/O7/hTwTidLOjI1NfVidfoCQ1VgDTLN6v2I8z1udUpTU1M/VN1XI4apZRW+q/yXmpp6sTqoSwRvIlR75L7S0r89QU1NvVOd5pfDyVTxeniQSU1NTZ1tt4dNItU6EWz4q+5hamrqJeq4IBoG8qoUXC0q6V+Kmpp6p7oKj1V/SNWrUlVQfigjpaamfp66KnZUxZM+BPenlNTU1NQf4565quw7HOC8xgTVXWpqaupX9C9200bf85Y5rZv0OTE1NTV10UzXFSLC9yPu3IOamnq7uipE9I+oGqoqntyvX1NTUz9FXfWH9HvpO9lsupRQU1NvVz/+oqampqampqampqampqampqamPl+fi1osLVOOTOQAAAAASUVORK5CYII=" />
+        </defs>
+    </g>
     <path fill="#ededed"
         d="M122.7,227.1 l-4.8,0l55.8,-74l0,3.2l-51.8,-69.2l5,0l48.8,65.4l-1.2,0l48.8,-65.4l4.8,0l-51.2,68.4l0,-1.6l55.2,73.2l-5,0l-52.8,-70.2l1.2,0l-52.8,70.2z"
         vector-effect="non-scaling-stroke" />

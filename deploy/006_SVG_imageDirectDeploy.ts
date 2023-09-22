@@ -4,16 +4,14 @@ import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
-    const greenBTC = "GreenBTC"
-
-    const authorizer = "0x2df522C2bF3E570caA22FBBd06d1A120B4Dc29a8";
+    const SVG_image = "SVG_image"
 
     const { deployments, getNamedAccounts } = hre;
     const { deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    console.log(`Driect Deploying: ${greenBTC} from ${deployer}`); 
-    const GreenBTC = await deploy(greenBTC, {
+    console.log(`Driect Deploying: ${SVG_image} from ${deployer}`); 
+    const svg_image = await deploy(SVG_image, {
         from: deployer,
         // args: [authorizer],
         args:[],
@@ -21,9 +19,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         skipIfAlreadyDeployed: false,
     });
 
-    console.log("GreenBTC deployed to %s at %s: ", hre.network.name, GreenBTC.address);
+    console.log("SVG_image deployed to %s at %s: ", hre.network.name, svg_image.address);
 };
 
-func.tags = ["GreenBTC_D"];
+func.tags = ["SVG_image_D"];
 
 export default func;

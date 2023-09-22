@@ -40,6 +40,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 0,
           },
+          
         },
       },
     ],
@@ -49,6 +50,7 @@ const config: HardhatUserConfig = {
                 "*": ["storageLayout"],
             },
         },
+        stackSize: 2000
     },
   },
   typechain: {
