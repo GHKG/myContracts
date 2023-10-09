@@ -90,41 +90,6 @@ contract SVG_image is ERC721
         
     }
 
-    function _sliceHashToString(bytes32 hashData, uint256 _start, uint256 _length) internal  pure returns(string memory){
-        bytes memory bytesArray = new bytes(_length);
-        
-        for (uint256 i = 0; i < _length; i++) {
-            bytesArray[i] = hashData[_start + i];
-        }
-        
-        return _bytesToHexString(bytesArray);
-    }
-
-    function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
-        bytes memory hexBytes = new bytes(_bytes.length * 2);
-        
-        for (uint256 i = 0; i < _bytes.length; i++) {
-            uint256 pos = i * 2;
-            uint256 val = uint256(uint8(_bytes[i]));
-            
-            hexBytes[pos] = _toHexChar(val / 16);
-            hexBytes[pos + 1] = _toHexChar(val % 16);
-        }
-        
-        return string(hexBytes);
-    }
-    
-    function _toHexChar(uint256 _val) private pure returns (bytes1) {
-        if (_val < 10) {
-            return bytes1(uint8(_val + 48));
-        } else {
-            return bytes1(uint8(_val + 87));
-        }
-    }
-
-
-
-
     function _svg_open_Data(uint256 tokenId) internal view returns(string memory){
 
         bytes memory imgBytes;
@@ -144,10 +109,12 @@ contract SVG_image is ERC721
 
         }else{
 
-            imgBytes = abi.encodePacked(
+            // imgBytes = abi.encodePacked(
 
-                '<svg fill="#68CA4F" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
-            );
+            //     '<svg fill="#68CA4F" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
+            // );
+
+            imgBytes = _getLuckySVGBytes(hashData);
             
         }
         
@@ -260,6 +227,96 @@ contract SVG_image is ERC721
         }else{
             _dataNFT[tokenID].open = true;
             _dataNFT[tokenID].openNumber = luckyNum;
+        }
+    }
+
+    function _getLuckySVGBytes(bytes32 _hashData) internal  pure  returns(bytes memory){
+
+        bytes memory imgBytes;
+
+        imgBytes = abi.encodePacked(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" preserveAspectRatio="xMinYMin meet" fill="none">'
+                '<g>'
+                    '<rect width="100%" height="100%" fill="rgba(255, 255, 255, 0.05)" rx="10px" ry="10px"/>'
+                    '<rect width="94%" height="94%" fill="transparent" rx="10px" ry="10px" stroke-linejoin="round" x="3%" y="3%" stroke-dasharray="1,6" stroke="white" />'
+                '</g>'
+                '<path d="M23.9805 38.5391L60.4979 59.6224L23.9805 80.7058L23.9805 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 0, 3),
+                '"/>'
+                '<path d="M97 38.5391L60.4825 59.6224L97 80.7058L97 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 1, 3),
+                '"/>'
+                '<path d="M60.4961 17.4609L97.0136 38.5443H60.497L60.4979 17.4609H60.4961Z" fill="#',
+                _sliceHashToString(_hashData, 2, 3),
+                '"/>'
+                '<path d="M60.4961 59.5625L97.0136 80.6459H60.497L60.4979 59.5625H60.4961Z" fill="#',
+                _sliceHashToString(_hashData, 3, 3)
+
+        );
+
+        imgBytes = abi.encodePacked(
+            imgBytes,
+            '"/>'
+            '<path d="M60.497 38.5391L97.0136 38.5416L60.4961 59.625L60.497 38.5416L60.497 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 4, 3),
+            '"/>'
+            '<path d="M60.497 80.6406L97.0136 80.6432L60.4961 101.727L60.497 80.6432L60.497 80.6406Z" fill="#',
+            _sliceHashToString(_hashData, 5, 3),
+            '"/>'
+            '<path d="M60.4979 17.4609L60.4979 38.5443H23.9805L60.4979 17.4609Z" fill="#',
+            _sliceHashToString(_hashData, 6, 3),
+            '"/>'
+            '<path d="M60.4979 59.5625L60.4979 80.6459H23.9805L60.4979 59.5625Z" fill="#',
+            _sliceHashToString(_hashData, 7, 3)
+
+        );
+
+        imgBytes = abi.encodePacked(
+            imgBytes,
+            '"/>'
+            '<path d="M60.4979 38.549L60.4979 38.5469L60.4979 59.6302L23.9805 38.5469L60.4979 38.549Z" fill="#',
+            _sliceHashToString(_hashData, 8, 3),
+            '"/>'
+            '<path d="M60.4979 80.6506L60.4979 80.6484L60.4979 101.732L23.9805 80.6484L60.4979 80.6506Z" fill="#',
+            _sliceHashToString(_hashData, 9, 3),
+            '"/>'
+            '</svg>'
+        );
+
+        return imgBytes;
+        // return string(Base64.encode(imgBytes));
+        // return string(imgBytes);
+    }
+
+    function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
+        bytes memory bytesArray = new bytes(_length);
+        
+        for (uint256 i = 0; i < _length; i++) {
+            bytesArray[i] = _hash[_start + i];
+        }
+        
+        return _bytesToHexString(bytesArray);
+    }
+
+    function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
+        bytes memory hexBytes = new bytes(_bytes.length * 2);
+        
+        for (uint256 i = 0; i < _bytes.length; i++) {
+            uint256 pos = i * 2;
+            uint256 val = uint256(uint8(_bytes[i]));
+            
+            hexBytes[pos] = _toHexChar(val / 16);
+            hexBytes[pos + 1] = _toHexChar(val % 16);
+        }
+        
+        return string(hexBytes);
+    }
+    
+    function _toHexChar(uint256 _val) private pure returns (bytes1) {
+        if (_val < 10) {
+            return bytes1(uint8(_val + 48));
+        } else {
+            return bytes1(uint8(_val + 87));
         }
     }
 

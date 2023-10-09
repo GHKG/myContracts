@@ -17,7 +17,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         const PROXY_ADDRESS       = "0xc9C744A220Ec238Bcf7798B43C9272622aF82997"       // Need to check
         // const NEW_IMPLEMENTATION  = "0x89fd8eEb870898688D4071485e2152a70D743E9F"       // Need to check
         // const NEW_IMPLEMENTATION  = "0xE4D0A7A56AF8B4E864E653BE78ECb68ca7EaeCE2"       // Need to check
-        const NEW_IMPLEMENTATION  = "0xC3A06c6a0C3e60af16FC319e332Db6525e749d9D"       // Need to check
+        // const NEW_IMPLEMENTATION  = "0xC3A06c6a0C3e60af16FC319e332Db6525e749d9D"       // without getPrice
+        const NEW_IMPLEMENTATION  = "0xDa424C4751f19325f07177b432329ff9C98b36FE"       // with getPrice
 
         const [deployer] = await ethers.getSigners();
         const GreenBTC = GreenBTC__factory.connect(PROXY_ADDRESS, deployer);

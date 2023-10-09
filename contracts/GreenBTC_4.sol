@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
-// import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-// import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./libraries/FormattedStrings.sol";
 import "./libraries/TransferHelper.sol";
 import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 
 
-contract GreenBTC is 
+contract GreenBTC_4 is 
     ContextUpgradeable,
     UUPSUpgradeable,
     OwnableUpgradeable,
@@ -138,10 +138,10 @@ contract GreenBTC is
             );
 
         }else{
-            // imgBytes = abi.encodePacked(
-            //     '<svg fill="#68CA4F" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
-            // );
-            imgBytes = _getLuckySVGBytes(hashData);
+            imgBytes = abi.encodePacked(
+                '<svg fill="#68CA4F" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
+            );
+            
         }
         
         return string(Base64.encode(imgBytes));
@@ -256,22 +256,16 @@ contract GreenBTC is
         _authVerify(gbtc, sig);
         //exchange fro warp matic from tokenNative contract
         _exchangeForTokenNative(msg.value);
-        
-        {
-            uint128 price = _getPrice(_tokenART, _tokenNative);
+        // fix amountART for test
+        uint256 amountART = msg.value * (10**9) / (5000000000000);
+        // uint256 modeAction = 0x03; //   bit0 = 1; 用户付钱为定额，能换取多少ART由Bank合约的兑换价格决定，实验中需要2个ART，根据兑换价格，需要0.1个matic
+                                    //  bit1 = 1; 表示需要去Bank合约去兑换ART
+        bytes memory callData = abi.encodeWithSelector(0x8D7FCEFD, _tokenNative, _tokenART, msg.value,
+                                                        amountART, 0x03, deadline, badgeInfo);
+        _actionBuilderBadge(abi.encodePacked(callData, msg.sender));     // Pay back to msg.sender already
 
-            uint256 amountART = msg.value * (10**9) / price;
-            // uint256 amountART = msg.value * (10**9) / (_getPrice(_tokenART, _tokenNative));
-
-            uint256 modeAction = 0x03; //   bit0 = 1; 用户付钱为定额，能换取多少ART由Bank合约的兑换价格决定，实验中需要2个ART，根据兑换价格，需要0.1个matic
-                                        //  bit1 = 1; 表示需要去Bank合约去兑换ART
-            bytes memory callData = abi.encodeWithSelector(0x8D7FCEFD, _tokenNative, _tokenART, msg.value,
-                                                            amountART, modeAction, deadline, badgeInfo);
-            _actionBuilderBadge(abi.encodePacked(callData, msg.sender));     // Pay back to msg.sender already
-
-            // _mintNFT(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
-            _mintNFT(gbtc);
-        }
+        // _mintNFT(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
+        _mintNFT(gbtc);
 
         emit GreenBitCoin(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
     }
@@ -284,54 +278,20 @@ contract GreenBTC is
         //verify signature
         _authVerify(gbtc, sig);
 
-        //避免"CompilerError: Stack too deep."
-        {
-                TransferHelper.safeTransferFrom(tokenPay.token, msg.sender, address(this), tokenPay.amount);
+        TransferHelper.safeTransferFrom(tokenPay.token, msg.sender, address(this), tokenPay.amount);
 
+        uint256 amountART = tokenPay.amount * (10**9) / 200;
 
-                uint128 price = _getPrice(_tokenART, tokenPay.token);
+        // uint256 modeAction = 0x03; //   bit0 = 1; 用户付钱为定额，能换取多少ART由Bank合约的兑换价格决定
+                                    //  bit1 = 1; 表示需要去Bank合约去兑换ART
+        bytes memory callData = abi.encodeWithSelector(0x8D7FCEFD, tokenPay.token, _tokenART, tokenPay.amount,
+                                                        amountART, 0x03, deadline, badgeInfo);
+        _actionBuilderBadge(abi.encodePacked(callData, msg.sender));     // Pay back to msg.sender already
 
-                uint256 amountART = tokenPay.amount * (10**9) / price;
-                // uint256 amountART = tokenPay.amount * (10**9) /  (_getPrice(_tokenART, tokenPay.token));
-
-                uint256 modeAction = 0x03; //   bit0 = 1; 用户付钱为定额，能换取多少ART由Bank合约的兑换价格决定
-                                            //  bit1 = 1; 表示需要去Bank合约去兑换ART
-                bytes memory callData = abi.encodeWithSelector(0x8D7FCEFD, tokenPay.token, _tokenART, tokenPay.amount,
-                                                                amountART, modeAction, deadline, badgeInfo);
-                _actionBuilderBadge(abi.encodePacked(callData, msg.sender));     // Pay back to msg.sender already
-
-                // _mintNFT(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
-                _mintNFT(gbtc);
-        }
+        // _mintNFT(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
+        _mintNFT(gbtc);
 
         emit GreenBitCoin(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
-    }
-
-    function _getPrice(address tokenART, address tokenPay) internal returns(uint128) {
-
-        address banker;
-
-        bytes4 selector = bytes4(keccak256("artBank()"));
-        bytes memory callData = abi.encodeWithSelector(selector);
-
-        (bool success, bytes memory returndata) = _arkreenBuilder.call(callData);
-        require(success, "get artBank address failed");
-        banker = abi.decode(returndata, (address));
-        
-
-        // address tokenART = 0x0999AFb673944a7B8E1Ef8eb0a7c6FFDc0b43E31;
-        // address tokenPay = 0x0FA8781a83E46826621b3BC094Ea2A0212e71B23;
-        // address tokenPay = 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889;
-
-        selector = bytes4(keccak256("saleIncome(address,address)"));
-        callData = abi.encodeWithSelector(selector, tokenART, tokenPay);
-
-        (success, returndata) = banker.call(callData);
-        require(success, "get price failed");
-        (uint128 price, ) = abi.decode(returndata, (uint128, uint128));
-
-        return price;
-        
     }
 
     function setAuthorizer(address authAddress) public onlyOwner {
@@ -406,8 +366,9 @@ contract GreenBTC is
         }
     }
 
-    function _getLuckySVGBytes(bytes32 _hashData) internal  pure  returns(bytes memory){
+    function getSVGString() public  pure  returns(string memory){
 
+        bytes32  _hashData = bytes32(0);
         bytes memory imgBytes;
 
         imgBytes = abi.encodePacked(
@@ -459,22 +420,21 @@ contract GreenBTC is
             '</svg>'
         );
 
-        return imgBytes;
         // return string(Base64.encode(imgBytes));
-        // return string(imgBytes);
+        return string(imgBytes);
     }
 
-    function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
+    function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) public  pure returns(string memory){
         bytes memory bytesArray = new bytes(_length);
         
         for (uint256 i = 0; i < _length; i++) {
             bytesArray[i] = _hash[_start + i];
         }
         
-        return _bytesToHexString(bytesArray);
+        return bytesToHexString(bytesArray);
     }
 
-    function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
+    function bytesToHexString(bytes memory _bytes) public pure returns (string memory) {
         bytes memory hexBytes = new bytes(_bytes.length * 2);
         
         for (uint256 i = 0; i < _bytes.length; i++) {
