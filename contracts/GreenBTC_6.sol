@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+// import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+// import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./libraries/FormattedStrings.sol";
+import "./libraries/TransferHelper.sol";
 import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 
 
-import "./libraries/FormattedStrings.sol";
-import "./libraries/TransferHelper.sol";
-
-import './interfaces/IGreenBTCImage.sol';
-
-
-contract GreenBTC is 
+contract GreenBTC_6 is 
     ContextUpgradeable,
     UUPSUpgradeable,
     OwnableUpgradeable,
@@ -149,14 +147,12 @@ contract GreenBTC is
 
         }else{
 
-            // bytes4 selector = bytes4(keccak256("getGreenTreeSVGBytes()"));
-            // bytes memory callData = abi.encodeWithSelector(selector);
+            bytes4 selector = bytes4(keccak256("getGreenTreeSVGBytes()"));
+            bytes memory callData = abi.encodeWithSelector(selector);
 
-            // (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
-            // require(success, "call image contract failed");
-            // openData = abi.decode(returndata, (string));
-
-            openData = IGreenBTCImage(_imageContract).getGreenTreeSVGBytes();
+            (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
+            require(success, "call image contract failed");
+            openData = abi.decode(returndata, (string));
         }
         
 
@@ -164,14 +160,12 @@ contract GreenBTC is
 
     function _svg_unopen_Data(uint256 tokenId ) internal view returns(string memory){
 
-        // bytes4 selector = bytes4(keccak256("getBlindBoxSVGBytes(uint256)"));
-        // bytes memory callData = abi.encodeWithSelector(selector, tokenId);
+        bytes4 selector = bytes4(keccak256("getBlindBoxSVGBytes(uint256)"));
+        bytes memory callData = abi.encodeWithSelector(selector, tokenId);
 
-        // (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
-        // require(success, "call image contract failed");
-        // return abi.decode(returndata, (string));
-
-        return IGreenBTCImage(_imageContract).getBlindBoxSVGBytes(tokenId);
+        (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
+        require(success, "call image contract failed");
+        return abi.decode(returndata, (string));
 
     }
 
@@ -420,36 +414,36 @@ contract GreenBTC is
     }
 
 
-    // function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
-    //     bytes memory bytesArray = new bytes(_length);
+    function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
+        bytes memory bytesArray = new bytes(_length);
         
-    //     for (uint256 i = 0; i < _length; i++) {
-    //         bytesArray[i] = _hash[_start + i];
-    //     }
+        for (uint256 i = 0; i < _length; i++) {
+            bytesArray[i] = _hash[_start + i];
+        }
         
-    //     return _bytesToHexString(bytesArray);
-    // }
+        return _bytesToHexString(bytesArray);
+    }
 
-    // function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
-    //     bytes memory hexBytes = new bytes(_bytes.length * 2);
+    function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
+        bytes memory hexBytes = new bytes(_bytes.length * 2);
         
-    //     for (uint256 i = 0; i < _bytes.length; i++) {
-    //         uint256 pos = i * 2;
-    //         uint256 val = uint256(uint8(_bytes[i]));
+        for (uint256 i = 0; i < _bytes.length; i++) {
+            uint256 pos = i * 2;
+            uint256 val = uint256(uint8(_bytes[i]));
             
-    //         hexBytes[pos] = _toHexChar(val / 16);
-    //         hexBytes[pos + 1] = _toHexChar(val % 16);
-    //     }
+            hexBytes[pos] = _toHexChar(val / 16);
+            hexBytes[pos + 1] = _toHexChar(val % 16);
+        }
         
-    //     return string(hexBytes);
-    // }
+        return string(hexBytes);
+    }
     
-    // function _toHexChar(uint256 _val) private pure returns (bytes1) {
-    //     if (_val < 10) {
-    //         return bytes1(uint8(_val + 48));
-    //     } else {
-    //         return bytes1(uint8(_val + 87));
-    //     }
-    // }
+    function _toHexChar(uint256 _val) private pure returns (bytes1) {
+        if (_val < 10) {
+            return bytes1(uint8(_val + 48));
+        } else {
+            return bytes1(uint8(_val + 87));
+        }
+    }
 
 }

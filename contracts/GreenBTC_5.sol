@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
+// import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+// import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./libraries/FormattedStrings.sol";
+import "./libraries/TransferHelper.sol";
 import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
 
 
-import "./libraries/FormattedStrings.sol";
-import "./libraries/TransferHelper.sol";
-
-import './interfaces/IGreenBTCImage.sol';
-
-
-contract GreenBTC is 
+contract GreenBTC_5 is 
     ContextUpgradeable,
     UUPSUpgradeable,
     OwnableUpgradeable,
@@ -91,8 +89,6 @@ contract GreenBTC is
 
     mapping (uint256 => NFT)  public _dataNFT;
     uint256 public _lastOpenNumber;
-
-    address public _imageContract;
     
     //// "GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType)";
     event GreenBitCoin(uint256 height,string energyStr,uint256 cellCount,string blockTime,address beneficiary,uint8 greenType);
@@ -102,7 +98,7 @@ contract GreenBTC is
         _;
     }
 
-    //initialize
+        //initialize
     function initialize(address authorizer_)
         external
         virtual
@@ -130,48 +126,44 @@ contract GreenBTC is
     {}
 
 
+    function _svg_open_Data(uint256 tokenId) internal view returns(string memory){
 
-
-
-    function _svg_open_Data(uint256 tokenId) internal view  returns(string memory openData){
-
+        bytes memory imgBytes;
         bytes32 hashData = _dataNFT[tokenId].hash;
 
         if(hashData == bytes32(0)){
 
-            bytes4 selector = bytes4(keccak256("getCertificateSVGBytes((uint256,uint256,address,uint8,string,string))"));
-            bytes memory callData = abi.encodeWithSelector(selector, _data[tokenId]);
-
-            (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
-            require(success, "call image contract failed");
-            openData = abi.decode(returndata, (string));
-
+            imgBytes = abi.encodePacked(
+                '<svg fill="#ccc" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
+            );
 
         }else{
-
-            // bytes4 selector = bytes4(keccak256("getGreenTreeSVGBytes()"));
-            // bytes memory callData = abi.encodeWithSelector(selector);
-
-            // (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
-            // require(success, "call image contract failed");
-            // openData = abi.decode(returndata, (string));
-
-            openData = IGreenBTCImage(_imageContract).getGreenTreeSVGBytes();
+            // imgBytes = abi.encodePacked(
+            //     '<svg fill="#68CA4F" viewBox="-2 -3.5 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin" class="jam jam-rectangle-f"> <path d="M3 .565h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3z"/> </svg>'
+            // );
+            imgBytes = _getLuckySVGBytes(hashData);
         }
         
-
+        return string(Base64.encode(imgBytes));
     }
 
-    function _svg_unopen_Data(uint256 tokenId ) internal view returns(string memory){
+    function _svg_unopen_Data(uint256 tokenId ) internal  pure  returns(string memory){
 
-        // bytes4 selector = bytes4(keccak256("getBlindBoxSVGBytes(uint256)"));
-        // bytes memory callData = abi.encodeWithSelector(selector, tokenId);
+        bytes memory imgBytes = abi.encodePacked(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" preserveAspectRatio="xMinYMin meet" fill="none">'
+            '<style>.f{font-family:Montserrat,arial,sans-serif;dominant-baseline:middle;text-anchor:middle}</style>'
+            '<path d="M96.864 172.667L33.356 136v56.833L96.863 246v-73.333zM160.4 135.997l-63.51 36.667v73.333l63.51-76.54v-33.46z"/>'
+            '<path d="M96.86 99.33L33.352 62.665v73.333l63.508 36.667V99.33z" fill="#E8C684"/>'
+            '<path d="M160.395 62.67L96.887 99.335v73.333l63.508-36.667V62.67z" fill="#D7A94F"/>'
+            '<path d="M160.395 62.667L96.887 26 33.378 62.667l63.509 36.666 63.508-36.666z" fill="#EEDEA6"/>'
+            '<text class="f" x="118" y="7" transform="rotate(30.5) skewX(-30)" fill="#98601e" font-size="16" font-weight="400">',
+            tokenId.toString(),
+            "</text>"
+            '<text class="f" x="68" y="82" transform="skewY(26.83) scale(.92718 1.07853)" fill="rgba(255,255,255,.5)" font-size="42">?</text>'
+            "</svg>"
+        );
 
-        // (bool success, bytes memory returndata) = _imageContract.staticcall(callData);
-        // require(success, "call image contract failed");
-        // return abi.decode(returndata, (string));
-
-        return IGreenBTCImage(_imageContract).getBlindBoxSVGBytes(tokenId);
+        return string(Base64.encode(imgBytes));
 
     }
 
@@ -256,15 +248,15 @@ contract GreenBTC is
 
     function authMintGreenBTCWithNative(Green_BTC calldata gbtc, Sig_PARAM calldata sig, BadgeInfo calldata badgeInfo, uint256 deadline) public  payable ensure(deadline) {
 
+        // require(msg.value >= 5*10**16, " at least 5*10**16 weis for 1 ART");
+        // require(gbtc.beneficiary == msg.sender, "only beneficiary can mint NFT");
         require(_data[gbtc.height].cellCount == 0, "only grey block can be mint");
 
         //verify signature
         _authVerify(gbtc, sig);
-
-        //exchange for warp matic from tokenNative contract
+        //exchange fro warp matic from tokenNative contract
         _exchangeForTokenNative(msg.value);
         
-        //避免"CompilerError: Stack too deep."
         {
             uint128 price = _getPrice(_tokenART, _tokenNative);
 
@@ -285,7 +277,8 @@ contract GreenBTC is
     }
 
     function authMintGreenBTCWithApprove(Green_BTC calldata gbtc, Sig_PARAM calldata sig, BadgeInfo calldata badgeInfo, TokenPay_PARAM calldata tokenPay, uint256 deadline) public ensure(deadline){
-
+        // require(msg.value >= 5*10**16, " at least 5*10**16 weis for 1 ART");
+        // require(gbtc.beneficiary == msg.sender, "only beneficiary can mint NFT");
         require(_data[gbtc.height].cellCount == 0, "only grey block can be mint");
 
         //verify signature
@@ -314,14 +307,14 @@ contract GreenBTC is
         emit GreenBitCoin(gbtc.height, gbtc.energyStr, gbtc.cellCount, gbtc.blockTime,  gbtc.beneficiary, gbtc.greenType);
     }
 
-    function _getPrice(address tokenART, address tokenPay) internal view returns(uint128) {
+    function _getPrice(address tokenART, address tokenPay) internal returns(uint128) {
 
         address banker;
 
         bytes4 selector = bytes4(keccak256("artBank()"));
         bytes memory callData = abi.encodeWithSelector(selector);
 
-        (bool success, bytes memory returndata) = _arkreenBuilder.staticcall(callData);
+        (bool success, bytes memory returndata) = _arkreenBuilder.call(callData);
         require(success, "get artBank address failed");
         banker = abi.decode(returndata, (address));
         
@@ -333,7 +326,7 @@ contract GreenBTC is
         selector = bytes4(keccak256("saleIncome(address,address)"));
         callData = abi.encodeWithSelector(selector, tokenART, tokenPay);
 
-        (success, returndata) = banker.staticcall(callData);
+        (success, returndata) = banker.call(callData);
         require(success, "get price failed");
         (uint128 price, ) = abi.decode(returndata, (uint128, uint128));
 
@@ -344,12 +337,6 @@ contract GreenBTC is
     function setAuthorizer(address authAddress) public onlyOwner {
         require(authAddress != address(0), "address 0 is not allowed"); 
         _authorizer = authAddress;
-    }
-
-    function setImageContractAddress(address addr) public onlyOwner {
-
-        require(addr != address(0), 'address 0 is not allowed');
-        _imageContract = addr;
     }
 
     function approveBuilder(address[] calldata tokens) external onlyOwner {
@@ -419,37 +406,94 @@ contract GreenBTC is
         }
     }
 
+    function _getLuckySVGBytes(bytes32 _hashData) internal  pure  returns(bytes memory){
 
-    // function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
-    //     bytes memory bytesArray = new bytes(_length);
-        
-    //     for (uint256 i = 0; i < _length; i++) {
-    //         bytesArray[i] = _hash[_start + i];
-    //     }
-        
-    //     return _bytesToHexString(bytesArray);
-    // }
+        bytes memory imgBytes;
 
-    // function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
-    //     bytes memory hexBytes = new bytes(_bytes.length * 2);
+        imgBytes = abi.encodePacked(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" preserveAspectRatio="xMinYMin meet" fill="none">'
+                '<g>'
+                    '<rect width="100%" height="100%" fill="rgba(255, 255, 255, 0.05)" rx="10px" ry="10px"/>'
+                    '<rect width="94%" height="94%" fill="transparent" rx="10px" ry="10px" stroke-linejoin="round" x="3%" y="3%" stroke-dasharray="1,6" stroke="white" />'
+                '</g>'
+                '<path d="M23.9805 38.5391L60.4979 59.6224L23.9805 80.7058L23.9805 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 0, 3),
+                '"/>'
+                '<path d="M97 38.5391L60.4825 59.6224L97 80.7058L97 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 1, 3),
+                '"/>'
+                '<path d="M60.4961 17.4609L97.0136 38.5443H60.497L60.4979 17.4609H60.4961Z" fill="#',
+                _sliceHashToString(_hashData, 2, 3),
+                '"/>'
+                '<path d="M60.4961 59.5625L97.0136 80.6459H60.497L60.4979 59.5625H60.4961Z" fill="#',
+                _sliceHashToString(_hashData, 3, 3)
+
+        );
+
+        imgBytes = abi.encodePacked(
+            imgBytes,
+            '"/>'
+            '<path d="M60.497 38.5391L97.0136 38.5416L60.4961 59.625L60.497 38.5416L60.497 38.5391Z" fill="#',
+                _sliceHashToString(_hashData, 4, 3),
+            '"/>'
+            '<path d="M60.497 80.6406L97.0136 80.6432L60.4961 101.727L60.497 80.6432L60.497 80.6406Z" fill="#',
+            _sliceHashToString(_hashData, 5, 3),
+            '"/>'
+            '<path d="M60.4979 17.4609L60.4979 38.5443H23.9805L60.4979 17.4609Z" fill="#',
+            _sliceHashToString(_hashData, 6, 3),
+            '"/>'
+            '<path d="M60.4979 59.5625L60.4979 80.6459H23.9805L60.4979 59.5625Z" fill="#',
+            _sliceHashToString(_hashData, 7, 3)
+
+        );
+
+        imgBytes = abi.encodePacked(
+            imgBytes,
+            '"/>'
+            '<path d="M60.4979 38.549L60.4979 38.5469L60.4979 59.6302L23.9805 38.5469L60.4979 38.549Z" fill="#',
+            _sliceHashToString(_hashData, 8, 3),
+            '"/>'
+            '<path d="M60.4979 80.6506L60.4979 80.6484L60.4979 101.732L23.9805 80.6484L60.4979 80.6506Z" fill="#',
+            _sliceHashToString(_hashData, 9, 3),
+            '"/>'
+            '</svg>'
+        );
+
+        return imgBytes;
+        // return string(Base64.encode(imgBytes));
+        // return string(imgBytes);
+    }
+
+    function _sliceHashToString(bytes32 _hash, uint256 _start, uint256 _length) internal  pure returns(string memory){
+        bytes memory bytesArray = new bytes(_length);
         
-    //     for (uint256 i = 0; i < _bytes.length; i++) {
-    //         uint256 pos = i * 2;
-    //         uint256 val = uint256(uint8(_bytes[i]));
+        for (uint256 i = 0; i < _length; i++) {
+            bytesArray[i] = _hash[_start + i];
+        }
+        
+        return _bytesToHexString(bytesArray);
+    }
+
+    function _bytesToHexString(bytes memory _bytes) private pure returns (string memory) {
+        bytes memory hexBytes = new bytes(_bytes.length * 2);
+        
+        for (uint256 i = 0; i < _bytes.length; i++) {
+            uint256 pos = i * 2;
+            uint256 val = uint256(uint8(_bytes[i]));
             
-    //         hexBytes[pos] = _toHexChar(val / 16);
-    //         hexBytes[pos + 1] = _toHexChar(val % 16);
-    //     }
+            hexBytes[pos] = _toHexChar(val / 16);
+            hexBytes[pos + 1] = _toHexChar(val % 16);
+        }
         
-    //     return string(hexBytes);
-    // }
+        return string(hexBytes);
+    }
     
-    // function _toHexChar(uint256 _val) private pure returns (bytes1) {
-    //     if (_val < 10) {
-    //         return bytes1(uint8(_val + 48));
-    //     } else {
-    //         return bytes1(uint8(_val + 87));
-    //     }
-    // }
+    function _toHexChar(uint256 _val) private pure returns (bytes1) {
+        if (_val < 10) {
+            return bytes1(uint8(_val + 48));
+        } else {
+            return bytes1(uint8(_val + 87));
+        }
+    }
 
 }
